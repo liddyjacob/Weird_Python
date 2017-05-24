@@ -2,6 +2,7 @@
 import sys
 import sympy
 import bisect
+from subset_sum import subset
 from math import log, ceil
 from sympy import sieve
 from sympy import ntheory
@@ -142,6 +143,34 @@ def delta((prime, power)):
 def delta_plus((prime, power)):
 	return (prime ** (power + 2) - 1) / (1.0 * prime * (prime ** (power + 1) - 1))
 
+
+def abundance(primeset):
+	return a(primeset) - 2 * prod(primeset) 
+
+def divisors_below_a(primelets):
+	#Divisors to return:
+	divisors = [1]
+	ab = abundance(primelets)
+	print ab
+
+
+	for i in range(0, len(primelets)):
+		p_product = 1
+		prev_d_size = len(divisors)
+		for exp in (1, primelets[i][1]):
+			p_product *= primelets[i][0]
+			#Do not allow larger than abundance
+			if p_product > ab:
+				break
+			
+			for div_index in range(0, prev_d_size):
+				if (p_product * divisors[div_index] <= ab):
+					#print "Appending divisors"
+
+					divisors.append(p_product * divisors[div_index])
+				else:
+					break
+	return divisors
 
 
 #B - the beta function
@@ -422,6 +451,12 @@ class PAOtree:
 
 	def add_branch(self, primeset, nprime, nexp):
 		print'primeset:{0} : prime,exp:{1}^{2}'.format(primeset, nprime, nexp)
+		if self.divisors == 5:
+			if subset(divisors_below_a(primeset + [(nprime, nexp)]), abundance(primeset + [(nprime, nexp)])):
+				print "not weird"
+			else:
+				print "WEIRD: "
+				test= input('Is this real?: ')
 		root = self.root
 		#Break and create children
 		break_ = False
