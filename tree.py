@@ -259,7 +259,7 @@ class PAOtree:
 		self.divisors+=1
 
 
-	def rec_power(self, node, deltalist = [], index = 0, tried_sets = []):
+	def rec_power(self, node, deltalist = [], index = 0, tried_sets = set()):
 		this_deltalist = deltalist[:]
 		if node.prime != 1:
 			this_deltalist.append(node.delta())
@@ -319,7 +319,7 @@ class PAOtree:
 
 		#print (primeset)
 		#print new_dlist
-		if primeset in tried_sets:
+		if tuple(primeset) in tried_sets:
 			#Set previously tried
 			return
 		#Start at prime not modified - This will add exponents:
@@ -344,7 +344,7 @@ class PAOtree:
 
 		#print (primeset)
 		#print new_dlist
-		if primeset in tried_sets:
+		if tuple(primeset) in tried_sets:
 			#Set previously tried
 			return
 
@@ -373,13 +373,12 @@ class PAOtree:
 				deltalist.append(delta((prime, power)))
 			i += 1
 		#If it has been tried before:
-		if primeset in tried_sets:
+		if tuple(primeset) in tried_sets:
 			return
 
 		self.attempt(tried_sets, primeset, deltalist)	
 
 	def attempt(self, tried_sets, primeset, new_dlist):
-
 		debug = False
 		if primeset[0] == (3,3):
 			if primeset[1] == (5,1):
@@ -397,7 +396,7 @@ class PAOtree:
 		maxprime = 0
 		
 		#print "New set of primes"
-		tried_sets.append(primeset)
+		tried_sets.add(tuple(primeset))
 
 		(minprime, maxprime) = find(primeset)
 
@@ -422,6 +421,7 @@ class PAOtree:
 				self.add_branch(primeset, prime, exp)	
 
 	def add_branch(self, primeset, nprime, nexp):
+		print'primeset:{0} : prime,exp:{1}^{2}'.format(primeset, nprime, nexp)
 		root = self.root
 		#Break and create children
 		break_ = False
