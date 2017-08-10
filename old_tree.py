@@ -2,11 +2,14 @@
 import sys
 import sympy
 import bisect
+from subset_sum import subset
 from math import log, ceil
 from sympy import sieve
 from sympy import ntheory
 sieve._reset()
 #tree.py
+
+#TODO: Make primesets_tried more efficient. Use a datar structar
 
 def prod(primelets):
 	product = 1
@@ -137,6 +140,39 @@ class PAO_node:
 def delta((prime, power)):
 	return (prime ** power - 1) * prime / (1.0 * prime ** (power + 1) - 1.0)
 
+def delta_plus((prime, power)):
+	return (prime ** (power + 2) - 1) / (1.0 * prime * (prime ** (power + 1) - 1))
+
+
+def abundance(primeset):
+	return a(primeset) - 2 * prod(primeset) 
+
+def divisors_below_a(primelets):
+	#Divisors to return:
+	divisors = [1]
+	ab = abundance(primelets)
+	#print ab
+
+
+	for i in range(0, len(primelets)):
+		p_product = 1
+		prev_d_size = len(divisors)
+		for exp in (1, primelets[i][1]):
+			p_product *= primelets[i][0]
+			#Do not allow larger than abundance
+			if p_product > ab:
+				break
+			
+			for div_index in range(0, prev_d_size):
+				if (p_product * divisors[div_index] <= ab):
+					#print "Appending divisors"
+
+					divisors.append(p_product * divisors[div_index])
+				else:
+					break
+	return divisors
+
+
 #B - the beta function
 #primelets - set of prime tuplets
 #(PRIME, EXPONENT):
@@ -205,13 +241,14 @@ class PAOtree:
 		self.divisors = 3
 
 	def setup_tree(self):
-		self.root = PAO_node(1,1);
+		self.root = PAO_node(1,1)
+		
 		self.root.add(3,5)
 		#Here are the children of 3,5:
 		child = self.root[0]
 		child.add(5,2)
 		child[0].add(13,1)
-
+		
 		self.root.add(3,4)
 		#3,4
 		child = self.root[1]
@@ -219,7 +256,7 @@ class PAOtree:
 		child[0].add(13,1)
 		child.add(5,2)
 		child[1].add(13,2)
-
+		'''
 		self.root.add(3,3)
 		#3,3
 		child = self.root[2]
@@ -229,7 +266,7 @@ class PAOtree:
 		child[1].add(11,1)
 		child.add(5,1)
 		child[2].add(7,1)
-		
+				
 		self.root.add(3,2)
 		#3,2
 		child = self.root[3]
@@ -237,12 +274,12 @@ class PAOtree:
 		child[0].add(7,1)
 		child.add(5,1)
 		child[1].add(7,2)
-
+		'''
 
 	def display(self):
 		index = 0
 		root = self.root
-		self.rec_disp(root, index)
+		self.rec_disp(root, index, 0)
 		
 
 	def add_power(self):
@@ -251,11 +288,12 @@ class PAOtree:
 		self.divisors+=1
 
 
-	def rec_power(self, node, deltalist = [], index = 0, tried_sets = []):
+	def rec_power(self, node, deltalist = [], index = 0, tried_sets = set()):
 		this_deltalist = deltalist[:]
 		if node.prime != 1:
 			this_deltalist.append(node.delta())
 			if index == self.divisors:
+			#	print 'From rec_power: {0}'.format(this_deltalist)
 				self.make_sets(node.primeset_above(), this_deltalist, tried_sets)
 
 		for child in node.children:
@@ -264,8 +302,8 @@ class PAOtree:
 
 	#make_sets - modify the set and attemt to branch
 	def make_sets(self, pset, deltalist, tried_sets):
-		if pset in tried_sets:
-			return
+		#if pset in tried_sets:
+		#	return
 		#Break early for repeats
 		set_index = 0
 		new_pset = pset		
@@ -273,67 +311,121 @@ class PAOtree:
 		for (prime, exp) in new_pset:
 			if (exp != 1):
 				#Try_down will call make sets at the end of the day
-				self.try_down(new_pset, deltalist, set_index, tried_sets)
+				self.try_down(pset, deltalist, set_index, tried_sets)
 				
 			set_index += 1
 			
 
 
 	def try_down(self, pset, deltalist, index, tried_sets):
+		
+		debug = False
+		if pset[0] == (3,3):
+			if pset[1] == (5,1):
+				if pset[2] == (13, 2) or pset[2] == (13, 1):
+					debug = True
+
+
 		new_dlist = deltalist
 		new_dlist.pop(index)
 		primeset = []
-
+		delta_plist = []
+		#if debug:
+		#	print "on"
+		#	print index
+		#	print new_dlist
 		i = 0
 		for (prime, power) in pset:
 			#Append primeset ()
 			if i == index:
 				primeset.append((prime, power - 1))
-				new_dlist.insert(index, delta(primeset[i]))
+				new_dlist.insert(index, delta((prime, power - 1)))
+				delta_plist.append(delta_plus((prime, power)))
 			else:
 				primeset.append((prime,power))
+				delta_plist.append(delta_plus((prime, power)))
 			i += 1
 
 		#print (primeset)
 		#print new_dlist
-		if primeset in tried_sets:
+		if tuple(primeset) in tried_sets:
 			#Set previously tried
 			return
 		#Start at prime not modified - This will add exponents:
-		self.up_set(primeset, deltalist, index + 1, tried_sets)
-		self.attemp(tried_sets, primeset, new_dlist)
+		self.attempt(tried_sets, primeset, new_dlist)
+		self.up_set(primeset, delta_plist, tried_sets)
+		self.make_sets(primeset, new_dlist, tried_sets)
 
 	#Check higher exponents beyond the index
-	def up_set(self, pset, deltalist, index, tried_sets):
-		
-		new_dlist = deltalist
-		new_dlist.pop(index)	
-		
+	def up_set(self, pset, delta_plist, tried_sets):	
+		criteria = 2.0 / b(pset) 
+		#print 'Criteria: {0}'.format(criteria)
+		primeset = []
+		i = 0
+
+		for (prime, power) in pset:
+			#Append primeset ()
+			#print(delta_plus((prime,power)) )
+			if delta_plus((prime,power)) < criteria:
+				#print "Met "
+				self.add_attempt(pset, i, tried_sets)
+			i += 1
+
+		#print (primeset)
+		#print new_dlist
+		if tuple(primeset) in tried_sets:
+			#Set previously tried
+			return
+
+	def prime_remove(self, pset, index, tried_sets):
+		deltalist = []
 		primeset = []
 
 		i = 0
 		for (prime, power) in pset:
-			#Append primeset ()
-			if i == index:
-				primeset.append((prime, power - 1))
-				new_dlist.insert(index, delta(primeset[i]))
-			else:
-				primeset.append((prime,power))
+			if i != index:
+				primeset.append((prime, power))
+				deltalist.append(delta((prime, power)))
 			i += 1
 
-		#print (primeset)
-		#print new_dlist
-		if primeset in tried_sets:
-			#Set previously tried
+	def add_attempt(self, pset, index, tried_sets):
+		deltalist = []
+		primeset = []
+
+		i = 0
+		for (prime, power) in pset:
+			if i == index:
+				primeset.append((prime, power +	1))
+				deltalist.append(delta((prime, power + 1)))
+			else:
+				primeset.append((prime, power))
+				deltalist.append(delta((prime, power)))
+			i += 1
+		#If it has been tried before:
+		if tuple(primeset) in tried_sets:
 			return
-	
-	def attemp(self, tried_sets, primeset, new_dlist):
+
+		self.attempt(tried_sets, primeset, deltalist)	
+
+	def attempt(self, tried_sets, primeset, new_dlist):
+		debug = False
+		if primeset[0] == (3,3):
+			if primeset[1] == (5,1):
+				if primeset[2] == (13, 2) or primeset[2] == (13, 1):
+					debug = True
+
+		#TODO: THERE IS A BUG CAUSING THE DLIST TO BE INCORRECT. THIS IS 
+		# A TEMPORARY AND BAD FIX
+		new_dlist = []
+		for pair in primeset:
+			new_dlist.append(delta(pair))
+			
 
 		minprime = 0
 		maxprime = 0
 		
 		#print "New set of primes"
-		tried_sets.append(primeset)
+		tried_sets.add(tuple(primeset))
 
 		(minprime, maxprime) = find(primeset)
 
@@ -342,17 +434,30 @@ class PAOtree:
 		for prime in new_primes:
 			exp = find_exp(primeset, prime)
 			newdelta = delta((prime, exp))
-			#STEP 3
 			maxdelta = max(new_dlist + [newdelta])
-			#print "max:{}".format(maxdelta)
+			#STEP 3
+			#if debug:
+			#	print "DEBUG:"
+			#	print (new_dlist + [newdelta])
+			#	print 'MAX: {0}'.format(maxdelta)
+			
 
 			#STEP 4 - SEE IF PRIMATIVE:			
 			if (b(primeset) * b( [(prime, exp)] ) * maxdelta > 2):
+				#print "Not a set: {0}".format(b(primeset) * b( [(prime, exp)] ) * maxdelta)
 				pass
 			else:
 				self.add_branch(primeset, prime, exp)	
 
 	def add_branch(self, primeset, nprime, nexp):
+		print'primeset:{0} : prime,exp:{1}^{2}'.format(primeset, nprime, nexp)
+		#if len(divisors_below_a(primeset + [(nprime, nexp)])) <= 43:
+		#	if subset(divisors_below_a(primeset + [(nprime, nexp)]), abundance(primeset + [(nprime, nexp)])):
+		#		print "not weird"
+#		#		test = input()
+		#	else:
+		#		print "WEIRD: "
+		#		test= input('Is this real?: ')
 		root = self.root
 		#Break and create children
 		break_ = False
@@ -371,16 +476,22 @@ class PAOtree:
 
 
 	#recursive display
-	def rec_disp(self, node, index):
+	def rec_disp(self, node, index, highn, f = open('numbers', 'w')):
+		print "Putting ints into file"
 		for i in range(0, index):
-			sys.stdout.write('    ')
-		sys.stdout.write(str(node))
-		print ":"
+			f.write('    ')
+		f.write(str(node))
+		highn = max (prod(node.primeset_above()), highn)
+		f.write( ": n = {0}\n".format(prod(node.primeset_above())) )
+
+		
 
 		if index == self.divisors:
 			pass
 			#print "n = {0}, abundant divisors: {1}".format(prod(node.primeset_above()), node.divisors_below_a())
 		else:
 			for child in node.children:
-				self.rec_disp(child, index + 1)
+				self.rec_disp(child, index + 1, highn, f)
 
+
+		return highn

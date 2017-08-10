@@ -151,7 +151,7 @@ def divisors_below_a(primelets):
 	#Divisors to return:
 	divisors = [1]
 	ab = abundance(primelets)
-	print ab
+	#print ab
 
 
 	for i in range(0, len(primelets)):
@@ -377,6 +377,13 @@ class PAOtree:
 			#Set previously tried
 			return
 
+	def double_prime(self, pset, index, tried_sets):
+		primeset = []
+
+		for (prime, power) in pset:
+			pass
+			#Append all but  
+
 	def prime_remove(self, pset, index, tried_sets):
 		deltalist = []
 		primeset = []
@@ -451,12 +458,13 @@ class PAOtree:
 
 	def add_branch(self, primeset, nprime, nexp):
 		print'primeset:{0} : prime,exp:{1}^{2}'.format(primeset, nprime, nexp)
-		if self.divisors == 5:
-			if subset(divisors_below_a(primeset + [(nprime, nexp)]), abundance(primeset + [(nprime, nexp)])):
-				print "not weird"
-			else:
-				print "WEIRD: "
-				test= input('Is this real?: ')
+		#if len(divisors_below_a(primeset + [(nprime, nexp)])) <= 43:
+		#	if subset(divisors_below_a(primeset + [(nprime, nexp)]), abundance(primeset + [(nprime, nexp)])):
+		#		print "not weird"
+#		#		test = input()
+		#	else:
+		#		print "WEIRD: "
+		#		test= input('Is this real?: ')
 		root = self.root
 		#Break and create children
 		break_ = False
@@ -475,12 +483,13 @@ class PAOtree:
 
 
 	#recursive display
-	def rec_disp(self, node, index, highn):
+	def rec_disp(self, node, index, highn, f = open('numbers', 'w')):
+		print "Putting ints into file"
 		for i in range(0, index):
-			sys.stdout.write('    ')
-		sys.stdout.write(str(node))
+			f.write('    ')
+		f.write(str(node))
 		highn = max (prod(node.primeset_above()), highn)
-		print ": n = {0}".format(prod(node.primeset_above()))
+		f.write( ": n = {0}\n".format(prod(node.primeset_above())) )
 
 		
 
@@ -489,7 +498,7 @@ class PAOtree:
 			#print "n = {0}, abundant divisors: {1}".format(prod(node.primeset_above()), node.divisors_below_a())
 		else:
 			for child in node.children:
-				self.rec_disp(child, index + 1, highn)
+				self.rec_disp(child, index + 1, highn, f)
 
 
 		return highn
