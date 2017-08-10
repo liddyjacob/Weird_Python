@@ -66,20 +66,22 @@ def get_max_del_pos(pset, expset):
 	return (max_dp, max_dp_index)
 
 
-def update_min_exp(pset, expset):
+def find_all_exp_inc(pset, expset):
 	pexpset = zip(pset, expset)
-	exp_index = 0
+	index_list = []
 	index = 0
 	min_b_diff = 1
 	for(prime, exp) in pexpset:
-		b_diff = del_pos(prime,exp) * b(pset, expset)
-		if b_diff > 0:
-			if b_diff < min_b_diff:
-				exp_index = index
+		new_expset = list(expset)
+		b_ = del_pos(prime,exp) * b(pset, expset)
+		if b_ > 2:
+			new_expset[index]+=1
+			if primative(pset, new_expset):
+				index_list+= [index]
 		index+=1
 
 
-	expset[exp_index] += 1
+	return index_list
 
 			
 			
@@ -155,10 +157,11 @@ split up divisors:
 	Try adding. If that works, try not adding.
 """
 def add_dontadd(pset, newprime, end_divisors):
-	
+
+	print 'in add_dontadd with pset:{0} and newprime {1}'.format(pset, newprime)	
 	if nextprime(pset + [newprime], newprime, end_divisors):
-		#print ("SPLIT")
-		#print(pset + [newprime])
+		print ("pset worked")
+		print(pset)
 
 		return nextprime(pset, newprime, end_divisors)
 
@@ -209,8 +212,8 @@ if b_1 < 2 and b_inf > 2
 def number_divisors_b_x(pset, newprime, end_divisors):
 
 	if len(pset) + 1 == end_divisors:
-		return find_exp_combos(pset + [newprime])
-		
+		if find_exp_combos(pset + [newprime]):
+			return nextprime(pset, newprime, end_divisors)
 
 	else:
 		return add_dontadd(pset, newprime, end_divisors)
@@ -297,12 +300,46 @@ see if any del_pos makes
 
 """
 def del_pos_check(pset, curr_exps):
+	#print("delta check")
 	(max_dp, index) = get_max_del_pos(pset, curr_exps)
 	if b(pset, curr_exps) * max_dp > 2:
 		return find_min_exp_inc(pset, curr_exps)
 	else:
-		curr_exps[index] += 1
-		return del_pos_check(pset, curr_exps)
+		#Originally, raised the exponent that increased b_n the most:
+		#curr_exps[index]+=1
+		#del_pos_check(pset, curr_exps)
+		return raise_exponents(pset, curr_exps)
+"""
+potential_abundant
+See if raising many exponents beyond indexed prime
+will make a number abundant eventually:
+
+"""
+def potential_abundant(pset, curr_exps, index):
+	return b(pset[:index], curr_exps[:index]) * b_inf(pset[index:]) > 2
+	
+
+
+"""
+raise exponents:
+Raise all exponents that could eventually lead in an abundant number:
+"""
+def raise_exponents(pset, curr_exps):
+
+	worked = False
+
+	for index in range(0, len(pset)):
+		if potential_abundant(pset, curr_exps, index):
+			(max_dp, rel_index) = get_max_del_pos(pset[index:], curr_exps[index:])
+			#True index of prime with max dp
+			trueindex = rel_index + index
+			new_exps = list(curr_exps)
+			new_exps[trueindex]+=1
+			#print 'trying: {0}'.format(zip(pset, new_exps, curr_exps))
+			if del_pos_check(pset, new_exps):
+				worked = True
+
+	return worked
 
 
 """
@@ -310,9 +347,20 @@ find_min_exp_inc
 find minimum exponent increase such that n is primative
 """
 
-def find_min_exp_inc(pset, curr_exp):
-	update_min_exp(pset, curr_exp)
-	return primative(pset, curr_exp)
+def find_min_exp_inc(pset, curr_exps):
+	index_list = find_all_exp_inc(pset, curr_exps)
+
+	if len(index_list) == 0:
+		return False
+	else:
+		return True
+	"""
+	for index in index_list:
+		new_exps = list(curr_exps)
+		new_exps[index]+=1
+		add(pset, curr
+	"""
+	#return primative(pset, curr_exps)
 	
 
 """ 
@@ -328,6 +376,6 @@ def find_exp_recursive(pset, curr_exps, exp_number):
 	return exp_abundant(pset, curr_exps, exp_number)	
 
 
-nextprime([],5,16)
+nextprime([],2,3)
 
 
