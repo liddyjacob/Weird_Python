@@ -1,4 +1,24 @@
 
+"""
+primative - 
+determine if abundant number is primative
+"""
+	
+def primative(pset, curr_exps, return_condition = False):
+	print("Primative check")
+	max_dp = get_max_del(pset, curr_exps)
+
+	if b(pset, curr_exps) * max_dp < 2:
+		add(pset, curr_exps)
+		print("^PASS")
+		return True
+		
+	else:
+		print (zip(pset,curr_exps))
+		print("^FAILURE")
+		return return_condition
+
+
 import sys
 import sympy
 import bisect
@@ -160,11 +180,12 @@ def add_dontadd(pset, newprime, end_divisors):
 
 	print 'in add_dontadd with pset:{0} and newprime {1}'.format(pset, newprime)	
 	if nextprime(pset + [newprime], newprime, end_divisors):
-		print ("pset worked")
+		print ("PSET WORKED")
 		print(pset)
 
 		return nextprime(pset, newprime, end_divisors)
 
+	return False
 """
 b_1_n
 Check if b_1_n > 2
@@ -214,7 +235,8 @@ def number_divisors_b_x(pset, newprime, end_divisors):
 	if len(pset) + 1 == end_divisors:
 		if find_exp_combos(pset + [newprime]):
 			return nextprime(pset, newprime, end_divisors)
-
+		else:
+			return False
 	else:
 		return add_dontadd(pset, newprime, end_divisors)
 
@@ -245,14 +267,14 @@ def find_exp_combos(pset):
 	for i in range(0, len(pset)):
 		initial_exps+=[1]
 
-	return find_exp_recursive(pset, initial_exps, 1)
+	return find_exp_recursive(pset, initial_exps)
 
 """
 primative - 
 determine if abundant number is primative
 """
 	
-def primative(pset, curr_exps):
+def primative(pset, curr_exps, return_condition = False):
 	print("Primative check")
 	max_dp = get_max_del(pset, curr_exps)
 
@@ -262,8 +284,9 @@ def primative(pset, curr_exps):
 		return True
 		
 	else:
-		print("FAILURE")
-		return False
+		print (zip(pset,curr_exps))
+		print("^FAILURE")
+		return return_condition
 
 
 """
@@ -274,11 +297,12 @@ Otherwise increase exponents.
 
 """
 
-def exp_abundant(pset, curr_exps, exp_number):
+def exp_abundant(pset, curr_exps):
 	#print("Abundance check")
 	#print(zip(pset, curr_exps))
 	if b(pset, curr_exps) >= 2:
 		return primative(pset, curr_exps)
+		
 		
 
 	else:
@@ -372,8 +396,8 @@ Recursivly find all exponent combos for a primeset
 Activated by find_exp_combos.
 
 """
-def find_exp_recursive(pset, curr_exps, exp_number):
-	return exp_abundant(pset, curr_exps, exp_number)	
+def find_exp_recursive(pset, curr_exps):
+	exp_abundant(pset, curr_exps)	
 
 
 nextprime([],2,3)
