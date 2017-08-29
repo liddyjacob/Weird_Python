@@ -120,4 +120,74 @@ def get_max_del_pos(pset, expset):
     return (max_dp, max_dp_index)
 
 def add(primeset, expset):
+	with open("primatives.txt", "a") as addfile:
+		addfile.write('{0}\n'.format(zip(primeset, expset)))
 	print(zip(primeset, expset))
+	ab = abundance(primeset, expset)
+	div = divisors_below_a(primeset, expset)
+	print '---ABUNDANCE:{0}'.format(ab)
+#	print '---DIVISORS BELOW ^:{0}'.format(div)
+#	if len(div) < 100:
+#		sub = subset(div, ab)
+#		print '---PSEUDOPERFECT:{0}'.format(sub)
+#
+#		if not sub:
+#			with open("WEIRDS.txt", "a") as addfile:
+#				addfile.write('{0}\n'.format(zip(primeset, expset)))
+
+def a(primeset, expset):
+	product = 1
+	for (prime, exp) in zip(primeset, expset):
+		product  *= (prime ** (exp + 1) - 1) / (1.0 * (prime - 1))
+
+	
+	return product
+
+def prod(primeset, expset):
+	product = 1
+	for (prime, exp) in zip(primeset, expset):
+		product *= (prime ** (exp))
+
+
+	return product
+
+
+def abundance(primeset, expset):
+	return a(primeset, expset) - 2 * prod(primeset, expset)
+
+
+def divisors_below_a(primeset, expset):
+	#Divisors to return:
+	divisors = [1]
+	a = abundance(primeset, expset)
+	#print abundance
+	#print ("a")
+	primelets = zip(primeset, expset)
+	for i in range(0, len(primelets)):
+		p_product = 1
+		prev_d_size = len(divisors)
+		for exp in (1, primelets[i][1]):
+			p_product *= primelets[i][0]
+			#Do not allow larger than abundance
+			if p_product > abundance:
+				break
+	
+			for div_index in range(0, prev_d_size):
+				if (p_product * divisors[div_index] <= abundance):
+					divisors.append(p_product * divisors[div_index])
+				else:
+					break
+	return divisors
+
+def subset(array, target):
+    if target == 0 or target < 1:
+        return False
+    elif len(array) == 0:
+        return False
+    else:
+        if array[0] == target:
+            return True
+        else:
+            return subset(array[1:],(target - array[0])) or subset(array[1:],target) 
+
+

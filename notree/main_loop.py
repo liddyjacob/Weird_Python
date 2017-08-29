@@ -8,7 +8,7 @@ from math import log, ceil
 from sympy import sieve
 from sympy import ntheory
 sieve._reset()
-
+sys.setrecursionlimit(3000)
 
 from tools import *
 from exponents import *
@@ -192,4 +192,6 @@ def add_dontadd(pset, newprime, end_divisors):
 	return False
 """
 """
+TOTAL = 0
 nextprime([], 2,4)
+print 'total: {0}'.format(TOTAL)

@@ -10,6 +10,13 @@ potential_abundant
 See if raising many exponents beyond indexed prime
 will make a number abundant eventually:
 
+#TODO:
+	This is the problem with the algorithm.
+	It fails to try rasing other exponents, because it wants
+	to guarentee a number will be primative by raising its maximum exponent
+
+	What needs to happen is some algorithm that will determine which 
+
 """
 def potential_abundant(pset, curr_exps, index):
     return b(pset[:index], curr_exps[:index]) * b_inf(pset[index:]) > 2
@@ -169,7 +176,3 @@ def raise_exponents(pset, curr_exps, number_found):
 				worked = True
 
 	return worked
-
-
-
-
