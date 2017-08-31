@@ -1,0 +1,7 @@
+https://git-scm.com/book/id/v2/Git-Branching-Branches-in-a-Nutshell
+
+MAGICAL COMMAND:
+git checkout -
+ - can be
+master
+new_exp_algorithm
