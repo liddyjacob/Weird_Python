@@ -157,22 +157,101 @@ def find_all_exp_inc(pset, expset):
 """
 raise exponents:
 Raise all exponents that could eventually lead in an abundant number:
+
+This will find the sequence of indices in order from del_pos(p_i, m_i) 
+greatest to least.
+
+That will then be passed into a function
+
+
 """
 def raise_exponents(pset, curr_exps, number_found):
 	if DEBUG:
 		print 'Raising exponents for {0}'.format(zip(pset, curr_exps))
 
-	worked = False
+	index_seq = i_sequence_dp(pset, curr_exps)
+	return exponent_inc_algorithm(pset, curr_exps, index_seq, number_found)
+
+"""
+	i_sequence_dp
+	Find the sequence of indices of primes 
+		such that the corresponding prime's del_pos is greatest to least
+
+	return that sequence.
+"""
+
+def i_sequence_dp(pset, curr_exps):
+	sequence = []
 
 	for index in range(0, len(pset)):
-		if potential_abundant(pset, curr_exps, index):
-			(max_dp, rel_index) = get_max_del_pos(pset[index:], curr_exps[index:])
-			#True index of prime with max dp
-			trueindex = rel_index + index
+		sequence.append((index, del_pos(pset[index], curr_exps[index])))
+
+	#Make/find the index sequence.
+	sequence.sort(key=lambda x: x[1], reverse=True)
+	index_seq = [x[0] for x in sequence]
+
+	print index_seq
+	return index_seq
+
+
+"""
+	exponent_increase_algoritm:
+	See what exponents can and cant be increased.
+	Based off list that is indexes of primes with greatest 
+	current influence on b(n)
+
+
+"""
+
+def exponent_inc_algorithm(pset, curr_exps, index_seq, number_found):
+
+	worked = False
+
+	for i in range(0, len(index_seq)):
+		indices_b = index_seq[:i]
+		
+		if mixed_b(pset, curr_exps, indices_b) > 2:
 			new_exps = list(curr_exps)
-			new_exps[trueindex]+=1
-			#print 'trying: {0}'.format(zip(pset, new_exps, curr_exps))
+			exp_index = index_seq[i]
+			new_exps[exp_index] += 1
+
 			if del_pos_check(pset, new_exps, number_found):
 				worked = True
 
+		else:
+			break
+
 	return worked
+
+
+"""
+	mixed_b:
+	Mixed b does the operation of mixing the right b(p^m)
+	with the b_inf(p)'s
+
+	The rule is:
+		if the index of p is in indices_b
+		 -then we should evaluate b(p^m)
+		otherwise:
+			-evaluate b_inf(p)
+
+
+"""
+def mixed_b(pset, curr_exps, indices_b):
+	product = 1.0
+
+	for i in range(0, len(pset)):
+		prime = pset[i]
+		exponent = curr_exps[i]
+		if i in set(indices_b):
+			product *= b([prime], [exponent])
+		else:
+			product *= b_inf([prime])
+
+	return product
+
+
+
+
+
+#i_sequence_dp([3,5,7], [3,1,2])
