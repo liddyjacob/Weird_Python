@@ -103,7 +103,7 @@ del_pos_check
 see if we can make a number primative abundant based off its del pos
 values
 """
-def del_pos_check(pset, curr_exps, number_found):
+def del_pos_check(pset, curr_exps, number_found, startat = 0):
 	if DEBUG:
 		print 'delta check for {0}'.format(zip(pset, curr_exps))
 
@@ -115,7 +115,7 @@ def del_pos_check(pset, curr_exps, number_found):
 		#Originally, raised the exponent that increased b_n the most:
 		#curr_exps[index]+=1
 		#del_pos_check(pset, curr_exps)
-		return raise_exponents(pset, curr_exps, number_found)
+		return raise_exponents(pset, curr_exps, number_found, startat)
 
 """
 find_min_exp_inc
@@ -165,12 +165,12 @@ That will then be passed into a function
 
 
 """
-def raise_exponents(pset, curr_exps, number_found):
+def raise_exponents(pset, curr_exps, number_found, startat):
 	if DEBUG:
 		print 'Raising exponents for {0}'.format(zip(pset, curr_exps))
 
 	index_seq = i_sequence_dp(pset, curr_exps)
-	return exponent_inc_algorithm(pset, curr_exps, index_seq, number_found)
+	return exponent_inc_algorithm(pset, curr_exps, index_seq, number_found, startat)
 
 """
 	i_sequence_dp
@@ -201,13 +201,17 @@ def i_sequence_dp(pset, curr_exps):
 	current influence on b(n)
 
 
+	Startat determines where on the list of indexes we should start
+	(To minimize repeated primatives
 """
 
-def exponent_inc_algorithm(pset, curr_exps, index_seq, number_found):
+def exponent_inc_algorithm(pset, curr_exps, index_seq, number_found, startat = 0):
 
 	worked = False
 
-	for i in range(0, len(index_seq)):
+	print "startat = {}".format(startat)
+
+	for i in range(startat, len(index_seq)):
 		indices_b = index_seq[:i]
 		
 		if mixed_b(pset, curr_exps, indices_b) > 2:
@@ -215,7 +219,7 @@ def exponent_inc_algorithm(pset, curr_exps, index_seq, number_found):
 			exp_index = index_seq[i]
 			new_exps[exp_index] += 1
 
-			if del_pos_check(pset, new_exps, number_found):
+			if del_pos_check(pset, new_exps, number_found, i):
 				worked = True
 
 		else:
