@@ -111,6 +111,8 @@ def del_pos_check(pset, curr_exps, number_found, startat = 0):
 	(max_dp, index) = get_max_del_pos(pset, curr_exps)
 	if b(pset, curr_exps) * max_dp > 2:
 		return find_min_exp_inc(pset, curr_exps, number_found)
+		#TODO : ADD a path here, where find if other exponents will create abundants, the ones below the minimum exponent increase. This may close the gap.
+
 	else:
 		#Originally, raised the exponent that increased b_n the most:
 		#curr_exps[index]+=1
@@ -120,6 +122,8 @@ def del_pos_check(pset, curr_exps, number_found, startat = 0):
 """
 find_min_exp_inc
 find minimum exponent increase such that n is primative
+
+ALSO see of other exponent increases will allow for a primative number eventually.
 """
 
 def find_min_exp_inc(pset, curr_exps, number_found):
@@ -129,6 +133,10 @@ def find_min_exp_inc(pset, curr_exps, number_found):
 		print 'found {0} primatives'.format(len(index_list))	
 
 	number_found[0]+=len(index_list)
+
+	#TODO: Take this index list and check beyond the exponent increasers.
+	#look at the ones that dont increase the exponent immiediently and then
+	#increase those slowly.
 
 	if len(index_list) == 0:
 		return False
