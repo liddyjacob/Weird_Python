@@ -1,7 +1,7 @@
 #exponents.py
 #The Exponent tree - find exponents to primesets:
 from tools import *
-DEBUG = False
+DEBUG = True
 
 #SPECIAL TOOLS:
 
@@ -43,6 +43,26 @@ def primative(pset, curr_exps, return_condition = False):
 		print (zip(pset,curr_exps))
 		print("^FAILURE")
 		return return_condition
+
+
+"""
+I_seq_dp:
+order index of prime/exp pairs from greatest influence on d to least.
+
+"""
+def i_sequence_dp(pset, curr_exps):
+	sequence = []
+
+	for index in range(0, len(pset)):
+		sequence.append((index, del_pos(pset[index], curr_exps[index])))
+
+	#Make/find the index sequence.
+	sequence.sort(key=lambda x: x[1], reverse=True)
+	index_seq = [x[0] for x in sequence]
+
+	print index_seq
+	return index_seq
+
 
 
 
@@ -96,28 +116,42 @@ def exp_abundant(pset, curr_exps, number_found):
 		
 
 	else:
-		del_pos_check(pset, curr_exps, number_found)
+		return order_check(pset, curr_exps, number_found)
 
 """
-del_pos_check
-see if we can make a number primative abundant based off its del pos
-values
+order_check:
+
+Order indexcies of exponents from greatest del_p to least, 
+then check which ones are primative
 """
-def del_pos_check(pset, curr_exps, number_found, startat = 0):
+def order_check(pset, curr_exps, number_found, startat = 0):
 	if DEBUG:
-		print 'delta check for {0}'.format(zip(pset, curr_exps))
+		print 'order check for {0}'.format(zip(pset, curr_exps))
 
+	index_seq = i_sequence_dp(pset, curr_exps)  
+	worked = False
+	b_ = b(pset, curr_exps)
+	i = 0
+	for i in range(startat, len(index_seq)):
+		curr_i = index_seq[i]
+		if b_ * del_pos(pset[curr_i], curr_exps[curr_i]) > 2:
+			new_exps = list(curr_exps)
+			new_exps[index_seq[i]] += 1
+			if primative(pset, new_exps):
+				number_found[0]+=1
+				worked = True
+	
+		else:
+			break;
 
-	(max_dp, index) = get_max_del_pos(pset, curr_exps)
-	if b(pset, curr_exps) * max_dp > 2:
-		return find_min_exp_inc(pset, curr_exps, number_found)
-		#TODO : ADD a path here, where find if other exponents will create abundants, the ones below the minimum exponent increase. This may close the gap.
+	
+	if i != len(index_seq) - 1:
+		if exponent_inc_algorithm(pset, curr_exps,
+						   index_seq, number_found, i):
+			worked = True
+	return worked
+	
 
-	else:
-		#Originally, raised the exponent that increased b_n the most:
-		#curr_exps[index]+=1
-		#del_pos_check(pset, curr_exps)
-		return raise_exponents(pset, curr_exps, number_found, startat)
 
 """
 find_min_exp_inc
@@ -227,7 +261,7 @@ def exponent_inc_algorithm(pset, curr_exps, index_seq, number_found, startat = 0
 			exp_index = index_seq[i]
 			new_exps[exp_index] += 1
 
-			if del_pos_check(pset, new_exps, number_found, i):
+			if order_check(pset, new_exps, number_found, i):
 				worked = True
 
 		else:
